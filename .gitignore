@@ -1,0 +1,9 @@
+# 비밀 정보 (API 키 등)
+.env
+
+# OS 임시 파일
+.DS_Store
+Thumbs.db
+
+# 에디터 임시 파일
+.vscode/
