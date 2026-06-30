@@ -80,8 +80,12 @@ export function TarotCard({
           backface-visibility: hidden;
           border-radius: 12px;
           overflow: hidden;
-          border: 1px solid var(--line);
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+          border: 1px solid rgba(238,160,214,0.5);
+          box-shadow:
+            0 0 0 1px rgba(243,182,224,0.12),
+            0 8px 24px rgba(0,0,0,0.75),
+            0 16px 48px rgba(0,0,0,0.6),
+            0 0 30px rgba(0,0,0,0.5) inset;
         }
 
         /* 뒷면 */
@@ -93,16 +97,18 @@ export function TarotCard({
         .back-frame {
           position: absolute;
           inset: 8px;
-          border: 1px solid var(--line);
+          border: 1px solid rgba(238,160,214,0.4);
           border-radius: 8px;
           display: flex;
           align-items: center;
           justify-content: center;
+          box-shadow: 0 0 12px rgba(217,142,201,0.15) inset;
         }
         .back-glyph {
           font-size: clamp(28px, 7vw, 44px);
-          color: var(--gold);
-          opacity: 0.9;
+          color: var(--gold-bright);
+          opacity: 1;
+          text-shadow: 0 0 20px rgba(243,182,224,0.6);
         }
         .back-lines {
           position: absolute;

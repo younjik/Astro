@@ -122,8 +122,17 @@ export default function CardsPage() {
 
   const activeQuestion = data.questions.find((q) => q.id === activeId);
 
+  const PUFFS = [0, 1, 2, 3, 4, 5];
+
   return (
     <main className="page">
+      {/* 양쪽 연기 효과 */}
+      <div className="smoke smoke-l" aria-hidden="true">
+        {PUFFS.map(i => <span key={i} className="puff" style={{ "--i": i } as React.CSSProperties} />)}
+      </div>
+      <div className="smoke smoke-r" aria-hidden="true">
+        {PUFFS.map(i => <span key={i} className="puff" style={{ "--i": i } as React.CSSProperties} />)}
+      </div>
       <header className="top">
         <button className="back-btn" onClick={() => router.push("/")}>
           ← 처음으로
@@ -261,22 +270,30 @@ export default function CardsPage() {
           margin-bottom: 30px;
         }
         .back-btn, .summary-btn {
-          background: transparent;
-          border: 1px solid var(--line);
+          background: rgba(18,8,40,0.55);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border: 1px solid rgba(238,160,214,0.45);
           color: var(--parchment);
           padding: 9px 16px;
           border-radius: 9px;
           font-size: 13.5px;
-          transition: border-color 0.2s, opacity 0.2s;
+          transition: border-color 0.2s, background 0.2s;
+          text-shadow: 0 1px 4px rgba(0,0,0,0.8);
         }
-        .back-btn:hover, .summary-btn:hover:not(:disabled) { border-color: var(--gold); }
+        .back-btn:hover, .summary-btn:hover:not(:disabled) {
+          border-color: var(--gold-bright);
+          background: rgba(30,12,60,0.7);
+        }
         .summary-btn {
-          color: var(--void);
-          background: linear-gradient(180deg, var(--gold-bright), var(--gold));
-          border: none;
-          font-weight: 600;
+          color: #1a0530;
+          background: linear-gradient(160deg, #f3b6e0, #d98ec9);
+          border: 1px solid rgba(255,200,240,0.6);
+          font-weight: 700;
+          text-shadow: none;
+          box-shadow: 0 2px 16px rgba(217,142,201,0.45);
         }
-        .summary-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .summary-btn:disabled { opacity: 0.3; cursor: not-allowed; }
         .progress {
           display: flex;
           align-items: baseline;
@@ -286,9 +303,10 @@ export default function CardsPage() {
           font-family: var(--font-display);
           font-size: 26px;
           color: var(--gold-bright);
+          text-shadow: 0 0 16px rgba(243,182,224,0.7);
         }
         .progress .slash { color: var(--mist); font-size: 15px; }
-        .progress .lbl { font-size: 12px; color: var(--mist); margin-left: 4px; }
+        .progress .lbl { font-size: 12px; color: var(--parchment); margin-left: 4px; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
 
         .intro-band {
           text-align: center;
@@ -297,15 +315,24 @@ export default function CardsPage() {
         .intro-band .eyebrow {
           font-size: 11px;
           letter-spacing: 0.4em;
-          color: var(--gold);
+          color: var(--gold-bright);
           margin-bottom: 12px;
+          text-shadow: 0 0 20px rgba(243,182,224,0.8);
         }
         .intro-band h1 {
           font-size: clamp(26px, 5vw, 40px);
           font-weight: 600;
           margin-bottom: 10px;
+          text-shadow:
+            0 0 60px rgba(243,182,224,0.35),
+            0 2px 4px rgba(0,0,0,0.95),
+            0 4px 16px rgba(0,0,0,0.8);
         }
-        .intro-band p { color: var(--mist); font-size: 14.5px; }
+        .intro-band p {
+          color: #ddd0f5;
+          font-size: 14.5px;
+          text-shadow: 0 1px 6px rgba(0,0,0,0.9);
+        }
         .keywords {
           display: flex;
           flex-wrap: wrap;
@@ -315,11 +342,62 @@ export default function CardsPage() {
         }
         .kw {
           font-size: 12px;
-          color: var(--gold-bright);
-          border: 1px solid var(--line);
-          padding: 4px 11px;
+          color: #f8d0ef;
+          border: 1px solid rgba(238,160,214,0.5);
+          padding: 5px 13px;
           border-radius: 99px;
-          background: rgba(201,162,75,0.06);
+          background: rgba(18,8,40,0.55);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+          text-shadow: 0 0 10px rgba(243,182,224,0.5);
+        }
+
+        /* ── 연기 효과 ── */
+        .smoke {
+          position: fixed;
+          bottom: 0;
+          width: 260px;
+          height: 100vh;
+          pointer-events: none;
+          z-index: 2;
+          overflow: hidden;
+        }
+        .smoke-l { left: 0; }
+        /* 오른쪽은 왼쪽 패턴을 수평으로 반전 */
+        .smoke-r { right: 0; transform: scaleX(-1); }
+
+        .puff {
+          position: absolute;
+          bottom: -20%;
+          border-radius: 50%;
+          filter: blur(52px);
+          background: radial-gradient(
+            circle at 50% 65%,
+            rgba(248,240,255,0.22) 0%,
+            rgba(230,210,255,0.1) 40%,
+            transparent 70%
+          );
+          animation: smoke-rise linear infinite;
+          animation-duration: calc(10s + var(--i) * 1.4s);
+          /* 음수 딜레이로 각 퍼프가 이미 다른 위상에서 시작 */
+          animation-delay: calc(var(--i) * -2.4s);
+        }
+        /* 각 퍼프별 크기·위치 차별화 */
+        .puff:nth-child(1) { width: 220px; height: 280px; left: -40px; }
+        .puff:nth-child(2) { width: 170px; height: 340px; left:  65px; }
+        .puff:nth-child(3) { width: 260px; height: 210px; left: -15px; }
+        .puff:nth-child(4) { width: 150px; height: 310px; left: 100px; }
+        .puff:nth-child(5) { width: 230px; height: 250px; left:  10px; }
+        .puff:nth-child(6) { width: 190px; height: 290px; left:  55px; }
+
+        @keyframes smoke-rise {
+          0%   { transform: translateY(0)     scaleX(0.7) rotate(-3deg); opacity: 0;    }
+          8%   { opacity: 0.9; }
+          35%  { transform: translateY(-32vh) scaleX(1.1) rotate( 2deg); opacity: 0.75; }
+          65%  { transform: translateY(-62vh) scaleX(1.5) rotate(-2deg); opacity: 0.45; }
+          90%  { opacity: 0.15; }
+          100% { transform: translateY(-108vh) scaleX(2.0) rotate( 3deg); opacity: 0;   }
         }
 
         /* ── 아치형 카드 펼치기 ── */
