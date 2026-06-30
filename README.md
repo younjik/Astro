@@ -23,11 +23,11 @@ npm run dev                        # http://localhost:3000
 
 ## 환경변수 (`.env.local`)
 
-| 변수 | 설명 |
-|------|------|
-| `ANTHROPIC_API_KEY` | Anthropic API 키 (질문 생성·평가) |
+| 변수                      | 설명                               |
+| ------------------------- | ---------------------------------- |
+| `ANTHROPIC_API_KEY`       | Anthropic API 키 (질문 생성·평가)  |
 | `CLOVA_SPEECH_INVOKE_URL` | Naver Clova Speech(CSR) Invoke URL |
-| `CLOVA_SPEECH_SECRET` | Clova Speech Secret Key |
+| `CLOVA_SPEECH_SECRET`     | Clova Speech Secret Key            |
 
 > Clova 키가 없어도 UI는 **데모 모드**로 동작합니다(녹음→안내 텍스트→Claude 평가까지 흐름 확인 가능). 실제 한국어 음성 인식은 키 설정 후 동작합니다.
 
@@ -53,6 +53,7 @@ src/
 ```
 
 ## 메모
+
 - 상태는 `sessionStorage`에 저장 — 새로고침해도 답변 유지, 처음 화면으로 가면 초기화.
 - 녹음은 브라우저 `MediaRecorder`(webm/mp4) 사용 → 마이크 권한 필요.
 - Clova Speech `recognizer/upload` 동기(sync) 엔드포인트 기준. 콘솔에서 도메인 발급 후 Invoke URL을 그대로 넣으세요.
