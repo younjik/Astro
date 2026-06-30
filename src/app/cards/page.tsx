@@ -42,7 +42,7 @@ export default function CardsPage() {
   function persistAnswers(map: Record<number, AnsweredCard>) {
     sessionStorage.setItem(
       "interview:answers",
-      JSON.stringify(Object.values(map))
+      JSON.stringify(Object.values(map)),
     );
   }
 
@@ -96,13 +96,18 @@ export default function CardsPage() {
             color: var(--mist);
           }
           .spinner {
-            width: 40px; height: 40px;
+            width: 40px;
+            height: 40px;
             border: 3px solid var(--line);
             border-top-color: var(--gold);
             border-radius: 50%;
             animation: spin 0.9s linear infinite;
           }
-          @keyframes spin { to { transform: rotate(360deg); } }
+          @keyframes spin {
+            to {
+              transform: rotate(360deg);
+            }
+          }
         `}</style>
       </main>
     );
@@ -110,7 +115,7 @@ export default function CardsPage() {
 
   const answeredCount = Object.keys(answers).length;
   const answeredList = Object.values(answers).sort(
-    (a, b) => a.questionId - b.questionId
+    (a, b) => a.questionId - b.questionId,
   );
   const avgScore =
     answeredList.length > 0
@@ -128,10 +133,22 @@ export default function CardsPage() {
     <main className="page">
       {/* 양쪽 연기 효과 */}
       <div className="smoke smoke-l" aria-hidden="true">
-        {PUFFS.map(i => <span key={i} className="puff" style={{ "--i": i } as React.CSSProperties} />)}
+        {PUFFS.map((i) => (
+          <span
+            key={i}
+            className="puff"
+            style={{ "--i": i } as React.CSSProperties}
+          />
+        ))}
       </div>
       <div className="smoke smoke-r" aria-hidden="true">
-        {PUFFS.map(i => <span key={i} className="puff" style={{ "--i": i } as React.CSSProperties} />)}
+        {PUFFS.map((i) => (
+          <span
+            key={i}
+            className="puff"
+            style={{ "--i": i } as React.CSSProperties}
+          />
+        ))}
       </div>
       <header className="top">
         <button className="back-btn" onClick={() => router.push("/")}>
@@ -158,7 +175,9 @@ export default function CardsPage() {
         {data.keywords.length > 0 && (
           <div className="keywords">
             {data.keywords.map((k, i) => (
-              <span className="kw" key={i}>#{k}</span>
+              <span className="kw" key={i}>
+                #{k}
+              </span>
             ))}
           </div>
         )}
@@ -174,7 +193,12 @@ export default function CardsPage() {
             <div
               key={i}
               className={`card-slot${flipped.has(i) ? " is-flipped" : ""}`}
-              style={{ "--angle": `${angle.toFixed(1)}deg`, zIndex: zIdx } as React.CSSProperties}
+              style={
+                {
+                  "--angle": `${angle.toFixed(1)}deg`,
+                  zIndex: zIdx,
+                } as React.CSSProperties
+              }
             >
               <TarotCard
                 arc={arc}
@@ -205,10 +229,17 @@ export default function CardsPage() {
         <div className="summary-backdrop" onClick={() => setShowSummary(false)}>
           <div className="summary-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-actions">
-              <button className="save-img" onClick={saveAsImage} disabled={saving}>
+              <button
+                className="save-img"
+                onClick={saveAsImage}
+                disabled={saving}
+              >
                 {saving ? "저장 중…" : "📷 사진으로 저장"}
               </button>
-              <button className="close-modal" onClick={() => setShowSummary(false)}>
+              <button
+                className="close-modal"
+                onClick={() => setShowSummary(false)}
+              >
                 ✕
               </button>
             </div>
@@ -269,31 +300,38 @@ export default function CardsPage() {
           justify-content: space-between;
           margin-bottom: 30px;
         }
-        .back-btn, .summary-btn {
-          background: rgba(18,8,40,0.55);
+        .back-btn,
+        .summary-btn {
+          background: rgba(18, 8, 40, 0.55);
           backdrop-filter: blur(10px);
           -webkit-backdrop-filter: blur(10px);
-          border: 1px solid rgba(238,160,214,0.45);
+          border: 1px solid rgba(238, 160, 214, 0.45);
           color: var(--parchment);
           padding: 9px 16px;
           border-radius: 9px;
           font-size: 13.5px;
-          transition: border-color 0.2s, background 0.2s;
-          text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+          transition:
+            border-color 0.2s,
+            background 0.2s;
+          text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
         }
-        .back-btn:hover, .summary-btn:hover:not(:disabled) {
+        .back-btn:hover,
+        .summary-btn:hover:not(:disabled) {
           border-color: var(--gold-bright);
-          background: rgba(30,12,60,0.7);
+          background: rgba(30, 12, 60, 0.7);
         }
         .summary-btn {
           color: #1a0530;
           background: linear-gradient(160deg, #f3b6e0, #d98ec9);
-          border: 1px solid rgba(255,200,240,0.6);
+          border: 1px solid rgba(255, 200, 240, 0.6);
           font-weight: 700;
           text-shadow: none;
-          box-shadow: 0 2px 16px rgba(217,142,201,0.45);
+          box-shadow: 0 2px 16px rgba(217, 142, 201, 0.45);
         }
-        .summary-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .summary-btn:disabled {
+          opacity: 0.3;
+          cursor: not-allowed;
+        }
         .progress {
           display: flex;
           align-items: baseline;
@@ -303,10 +341,18 @@ export default function CardsPage() {
           font-family: var(--font-display);
           font-size: 26px;
           color: var(--gold-bright);
-          text-shadow: 0 0 16px rgba(243,182,224,0.7);
+          text-shadow: 0 0 16px rgba(243, 182, 224, 0.7);
         }
-        .progress .slash { color: var(--mist); font-size: 15px; }
-        .progress .lbl { font-size: 12px; color: var(--parchment); margin-left: 4px; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+        .progress .slash {
+          color: var(--mist);
+          font-size: 15px;
+        }
+        .progress .lbl {
+          font-size: 12px;
+          color: var(--parchment);
+          margin-left: 4px;
+          text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+        }
 
         .intro-band {
           text-align: center;
@@ -317,21 +363,21 @@ export default function CardsPage() {
           letter-spacing: 0.4em;
           color: var(--gold-bright);
           margin-bottom: 12px;
-          text-shadow: 0 0 20px rgba(243,182,224,0.8);
+          text-shadow: 0 0 20px rgba(243, 182, 224, 0.8);
         }
         .intro-band h1 {
           font-size: clamp(26px, 5vw, 40px);
           font-weight: 600;
           margin-bottom: 10px;
           text-shadow:
-            0 0 60px rgba(243,182,224,0.35),
-            0 2px 4px rgba(0,0,0,0.95),
-            0 4px 16px rgba(0,0,0,0.8);
+            0 0 60px rgba(243, 182, 224, 0.35),
+            0 2px 4px rgba(0, 0, 0, 0.95),
+            0 4px 16px rgba(0, 0, 0, 0.8);
         }
         .intro-band p {
           color: #ddd0f5;
           font-size: 14.5px;
-          text-shadow: 0 1px 6px rgba(0,0,0,0.9);
+          text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
         }
         .keywords {
           display: flex;
@@ -343,14 +389,14 @@ export default function CardsPage() {
         .kw {
           font-size: 12px;
           color: #f8d0ef;
-          border: 1px solid rgba(238,160,214,0.5);
+          border: 1px solid rgba(238, 160, 214, 0.5);
           padding: 5px 13px;
           border-radius: 99px;
-          background: rgba(18,8,40,0.55);
+          background: rgba(18, 8, 40, 0.55);
           backdrop-filter: blur(8px);
           -webkit-backdrop-filter: blur(8px);
-          box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-          text-shadow: 0 0 10px rgba(243,182,224,0.5);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+          text-shadow: 0 0 10px rgba(243, 182, 224, 0.5);
         }
 
         /* ── 연기 효과 ── */
@@ -375,9 +421,14 @@ export default function CardsPage() {
             transparent 100%
           );
         }
-        .smoke-l { left: 0; }
+        .smoke-l {
+          left: 0;
+        }
         /* 오른쪽은 왼쪽 패턴을 수평으로 반전 (mask도 함께 반전됨) */
-        .smoke-r { right: 0; transform: scaleX(-1); }
+        .smoke-r {
+          right: 0;
+          transform: scaleX(-1);
+        }
 
         .puff {
           position: absolute;
@@ -386,8 +437,8 @@ export default function CardsPage() {
           filter: blur(52px);
           background: radial-gradient(
             circle at 50% 65%,
-            rgba(248,240,255,0.22) 0%,
-            rgba(230,210,255,0.1) 40%,
+            rgba(248, 240, 255, 0.76) 0%,
+            rgba(230, 210, 255, 0.1) 40%,
             transparent 70%
           );
           animation: smoke-rise linear infinite;
@@ -396,20 +447,60 @@ export default function CardsPage() {
           animation-delay: calc(var(--i) * -2.4s);
         }
         /* 각 퍼프별 크기·위치 차별화 */
-        .puff:nth-child(1) { width: 220px; height: 280px; left: -40px; }
-        .puff:nth-child(2) { width: 170px; height: 340px; left:  65px; }
-        .puff:nth-child(3) { width: 260px; height: 210px; left: -15px; }
-        .puff:nth-child(4) { width: 150px; height: 310px; left: 100px; }
-        .puff:nth-child(5) { width: 230px; height: 250px; left:  10px; }
-        .puff:nth-child(6) { width: 190px; height: 290px; left:  55px; }
+        .puff:nth-child(1) {
+          width: 220px;
+          height: 280px;
+          left: -40px;
+        }
+        .puff:nth-child(2) {
+          width: 170px;
+          height: 340px;
+          left: 65px;
+        }
+        .puff:nth-child(3) {
+          width: 260px;
+          height: 210px;
+          left: -15px;
+        }
+        .puff:nth-child(4) {
+          width: 150px;
+          height: 310px;
+          left: 100px;
+        }
+        .puff:nth-child(5) {
+          width: 230px;
+          height: 250px;
+          left: 10px;
+        }
+        .puff:nth-child(6) {
+          width: 190px;
+          height: 290px;
+          left: 55px;
+        }
 
         @keyframes smoke-rise {
-          0%   { transform: translateY(0)     scaleX(0.7) rotate(-3deg); opacity: 0;    }
-          8%   { opacity: 0.9; }
-          35%  { transform: translateY(-32vh) scaleX(1.1) rotate( 2deg); opacity: 0.75; }
-          65%  { transform: translateY(-62vh) scaleX(1.5) rotate(-2deg); opacity: 0.45; }
-          90%  { opacity: 0.15; }
-          100% { transform: translateY(-108vh) scaleX(2.0) rotate( 3deg); opacity: 0;   }
+          0% {
+            transform: translateY(0) scaleX(0.7) rotate(-3deg);
+            opacity: 0;
+          }
+          8% {
+            opacity: 0.9;
+          }
+          35% {
+            transform: translateY(-32vh) scaleX(1.1) rotate(2deg);
+            opacity: 0.75;
+          }
+          65% {
+            transform: translateY(-62vh) scaleX(1.5) rotate(-2deg);
+            opacity: 0.45;
+          }
+          90% {
+            opacity: 0.15;
+          }
+          100% {
+            transform: translateY(-108vh) scaleX(2) rotate(3deg);
+            opacity: 0;
+          }
         }
 
         /* ── 아치형 카드 펼치기 ── */
@@ -437,7 +528,8 @@ export default function CardsPage() {
           transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
         .card-slot:hover {
-          transform: rotate(var(--angle)) translateY(calc(var(--card-w) * -0.22)) scale(1.06) !important;
+          transform: rotate(var(--angle))
+            translateY(calc(var(--card-w) * -0.22)) scale(1.06) !important;
           z-index: 100 !important;
         }
         .card-slot.is-flipped {
@@ -449,7 +541,7 @@ export default function CardsPage() {
           position: fixed;
           inset: 0;
           z-index: 60;
-          background: rgba(7,6,14,0.82);
+          background: rgba(7, 6, 14, 0.82);
           backdrop-filter: blur(6px);
           display: flex;
           align-items: flex-start;
@@ -458,7 +550,14 @@ export default function CardsPage() {
           padding: 28px 16px;
           animation: fade 0.25s ease;
         }
-        @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fade {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
         .summary-modal {
           width: 100%;
           max-width: 600px;
@@ -477,26 +576,36 @@ export default function CardsPage() {
           padding: 11px 20px;
           border-radius: 10px;
           font-size: 14px;
-          box-shadow: 0 8px 24px rgba(201,162,75,0.3);
+          box-shadow: 0 8px 24px rgba(201, 162, 75, 0.3);
         }
-        .save-img:disabled { opacity: 0.5; }
+        .save-img:disabled {
+          opacity: 0.5;
+        }
         .close-modal {
           background: transparent;
           border: 1px solid var(--line);
           color: var(--parchment);
-          width: 38px; height: 38px;
+          width: 38px;
+          height: 38px;
           border-radius: 9px;
         }
 
         .capture {
           background:
-            radial-gradient(700px 300px at 50% 0%, rgba(201,162,75,0.1), transparent 60%),
+            radial-gradient(
+              700px 300px at 50% 0%,
+              rgba(201, 162, 75, 0.1),
+              transparent 60%
+            ),
             linear-gradient(180deg, #16132a, #0d0b1c);
           border: 1px solid var(--line);
           border-radius: 18px;
           padding: 34px 28px 24px;
         }
-        .cap-head { text-align: center; margin-bottom: 26px; }
+        .cap-head {
+          text-align: center;
+          margin-bottom: 26px;
+        }
         .cap-eyebrow {
           font-size: 10px;
           letter-spacing: 0.34em;
@@ -514,16 +623,33 @@ export default function CardsPage() {
           justify-content: center;
           gap: 28px;
         }
-        .stat-num { font-size: 40px; color: var(--gold-bright); line-height: 1; }
-        .stat-lbl { font-size: 11px; color: var(--mist); margin-top: 4px; letter-spacing: 0.06em; }
-        .stat-div { width: 1px; height: 44px; background: var(--line); }
+        .stat-num {
+          font-size: 40px;
+          color: var(--gold-bright);
+          line-height: 1;
+        }
+        .stat-lbl {
+          font-size: 11px;
+          color: var(--mist);
+          margin-top: 4px;
+          letter-spacing: 0.06em;
+        }
+        .stat-div {
+          width: 1px;
+          height: 44px;
+          background: var(--line);
+        }
 
-        .cap-list { display: flex; flex-direction: column; gap: 14px; }
+        .cap-list {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
         .cap-item {
           border: 1px solid var(--line-soft);
           border-radius: 12px;
           padding: 16px 18px;
-          background: rgba(255,255,255,0.02);
+          background: rgba(255, 255, 255, 0.02);
         }
         .cap-item-top {
           display: flex;
@@ -531,7 +657,10 @@ export default function CardsPage() {
           align-items: center;
           margin-bottom: 8px;
         }
-        .cap-arcana { color: var(--gold); font-size: 15px; }
+        .cap-arcana {
+          color: var(--gold);
+          font-size: 15px;
+        }
         .cap-score {
           color: var(--gold-bright);
           font-weight: 700;
