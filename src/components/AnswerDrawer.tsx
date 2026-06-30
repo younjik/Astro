@@ -108,7 +108,13 @@ export function AnswerDrawer({
   async function finishRecording() {
     clearTimer();
     let blob: Blob;
-    try { blob = await stop(); } catch (e: any) { setError(e.message); return; }
+    try {
+      blob = await stop();
+    } catch (e: any) {
+      setError(e.message);
+      return;
+    }
+
     setPhase("transcribing");
     try {
       const fd = new FormData();
