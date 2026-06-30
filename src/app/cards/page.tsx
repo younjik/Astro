@@ -16,6 +16,14 @@ export default function CardsPage() {
   const [showSummary, setShowSummary] = useState(false);
   const [saving, setSaving] = useState(false);
   const summaryRef = useRef<HTMLDivElement>(null);
+  const spreadRef = useRef<HTMLElement>(null);
+
+  // 스프레드 초기 스크롤: 아치 중앙이 뷰포트 중심에 오도록
+  useEffect(() => {
+    if (!data) return;
+    const el = spreadRef.current;
+    if (el) el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2;
+  }, [data]);
 
   // 세션에서 데이터 로드
   useEffect(() => {
@@ -183,7 +191,8 @@ export default function CardsPage() {
         )}
       </div>
 
-      <section className="spread">
+      <section className="spread" ref={spreadRef}>
+        <div className="arch-content">
         {ARCANA.map((arc, i) => {
           const q = data.questions.find((x) => x.id === i) ?? data.questions[i];
           const ans = answers[i];
@@ -193,12 +202,7 @@ export default function CardsPage() {
             <div
               key={i}
               className={`card-slot${flipped.has(i) ? " is-flipped" : ""}`}
-              style={
-                {
-                  "--angle": `${angle.toFixed(1)}deg`,
-                  zIndex: zIdx,
-                } as React.CSSProperties
-              }
+              style={{ "--angle": `${angle.toFixed(1)}deg`, zIndex: zIdx } as React.CSSProperties}
             >
               <TarotCard
                 arc={arc}
@@ -213,6 +217,7 @@ export default function CardsPage() {
             </div>
           );
         })}
+        </div>
       </section>
 
       {/* 답변 드로어 */}
@@ -486,33 +491,43 @@ export default function CardsPage() {
           }
         }
 
-        /* ── 아치형 카드 펼치기 ── */
-        /* max-width 컨테이너를 벗어나 뷰포트 전체 폭 사용 */
-        /* 총 가로 폭 ≈ card-w × 4.23 → 23vw 기준으로 ~97% 화면 커버 */
+        /* ── 원호형 스크롤 카드 배열 ── */
         .spread {
-          --card-w: min(300px, 23vw);
+          --card-w: min(160px, 28vw);
+          --R: 420px;   /* 원의 반지름 */
+          --d: 210px;   /* 원 중심 = 섹션 하단에서 d 아래 */
           position: relative;
-          /* .page max-width 컨테이너 탈출: 50% = 콘텐츠 중앙, 50vw = 뷰포트 중앙 */
           width: 100vw;
           margin-left: calc(50% - 50vw);
-          height: calc(var(--card-w) * 1.7);
-          overflow: visible;
-          margin-bottom: 40px;
+          /* 가운데 카드 전체가 보이도록 높이 확보: (R-d) + 카드높이 + 여백 */
+          height: calc(var(--R) - var(--d) + var(--card-w) * 1.5 + 30px);
+          overflow-x: auto;
+          overflow-y: hidden;
+          scrollbar-width: none;
+          margin-bottom: 30px;
         }
+        .spread::-webkit-scrollbar { display: none; }
+
+        .arch-content {
+          position: relative;
+          height: 100%;
+          /* 좌우 끝 카드(±65°)가 잘리지 않을 최소 너비 */
+          width: max(100%, calc(var(--R) * 1.9 + var(--card-w) + 60px));
+        }
+
         .card-slot {
           position: absolute;
-          bottom: 0;
-          left: 50%;
           width: var(--card-w);
-          margin-left: calc(var(--card-w) / -2);
-          /* 회전 중심: 카드 수평 중앙, 카드 하단 (card-w × 0.6) 아래 */
-          transform-origin: calc(var(--card-w) / 2) calc(var(--card-w) * 2.1);
-          transform: rotate(var(--angle)) translateY(0) scale(1);
+          /* 각 카드의 하단 중심을 반지름 R인 원의 호 위에 배치 */
+          left: calc(50% + var(--R) * sin(var(--angle)) - var(--card-w) / 2);
+          bottom: calc(var(--R) * cos(var(--angle)) - var(--d));
+          /* 호의 접선 방향으로 카드 회전 */
+          transform: rotate(var(--angle));
+          transform-origin: center bottom;
           transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
         .card-slot:hover {
-          transform: rotate(var(--angle))
-            translateY(calc(var(--card-w) * -0.22)) scale(1.06) !important;
+          transform: rotate(var(--angle)) translateY(-20px) scale(1.07) !important;
           z-index: 100 !important;
         }
         .card-slot.is-flipped {
