@@ -807,7 +807,7 @@ export default function CardsPage() {
         /* ── 리셋 Phase 1: 바깥 카드부터 순서대로 덱으로 수렴 (ease-in: 가속하며 모임) ── */
         .arch-content.is-resetting .card-slot {
           left: calc(50% - var(--card-w) / 2) !important;
-          bottom: 20px !important;
+          bottom: calc(var(--R) - var(--d)) !important;
           transform: rotate(var(--deck-rot)) !important;
           z-index: calc(var(--slot-i, 0) + 1) !important;
           transition:
