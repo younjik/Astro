@@ -147,6 +147,7 @@ export default function CardsPage() {
     setActiveId(null);
     setFlipped(new Set());
     setAnswers({});
+    setRotation(0);
     sessionStorage.removeItem("interview:answers");
     setIsResetting(true);
 
