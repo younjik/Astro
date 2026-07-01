@@ -572,13 +572,6 @@ export default function UploadPage() {
           <br />
           가능성을 비추는 카드입니다.
         </h1>
-        <p className="lede">
-          자소서나 채용공고, 하나만 있어도 괜찮습니다.
-          <br />
-          AI가 분석해 당신만을 위한 10개의 질문 카드를 준비합니다.
-          <br />
-          카드를 뒤집고, 답변하며 가능성을 확인해 보세요.
-        </p>
       </header>
 
       <section className="slots">
