@@ -17,7 +17,9 @@ function MultiFileSlot({
   const [drag, setDrag] = useState(false);
 
   return (
-    <div className={`slot ${files.length > 0 ? "filled" : ""} ${drag ? "drag" : ""}`}>
+    <div
+      className={`slot ${files.length > 0 ? "filled" : ""} ${drag ? "drag" : ""}`}
+    >
       <div
         className="slot-drop"
         onClick={() => inputRef.current?.click()}
@@ -29,7 +31,8 @@ function MultiFileSlot({
         onDrop={(e) => {
           e.preventDefault();
           setDrag(false);
-          if (e.dataTransfer.files?.length) onAdd(Array.from(e.dataTransfer.files));
+          if (e.dataTransfer.files?.length)
+            onAdd(Array.from(e.dataTransfer.files));
         }}
         role="button"
         tabIndex={0}
@@ -50,7 +53,9 @@ function MultiFileSlot({
         />
         <div className="slot-glyph">+</div>
         <div className="slot-label">자소서 · 채용공고</div>
-        <div className="slot-sub">클릭 또는 드래그하여 업로드 (여러 파일 가능)</div>
+        <div className="slot-sub">
+          클릭 또는 드래그하여 업로드 (여러 파일 가능)
+        </div>
       </div>
 
       {files.length > 0 && (
@@ -164,7 +169,9 @@ function MultiFileSlot({
           color: var(--mist);
           font-size: 10px;
           cursor: pointer;
-          transition: border-color 0.2s, color 0.2s;
+          transition:
+            border-color 0.2s,
+            color 0.2s;
         }
         .file-remove:hover {
           border-color: var(--ember);
@@ -402,7 +409,14 @@ const DEMO_DATA = {
   ],
 } as const;
 
-const KEYWORD_OPTIONS = ["직무역량", "경험", "인성", "조직적합성", "문제해결", "지원동기"];
+const KEYWORD_OPTIONS = [
+  "직무역량",
+  "경험",
+  "인성",
+  "조직적합성",
+  "문제해결",
+  "지원동기",
+];
 
 export default function UploadPage() {
   const router = useRouter();
@@ -526,7 +540,7 @@ export default function UploadPage() {
           onClick={() => setShowModeModal(false)}
         >
           <div className="mode-box" onClick={(e) => e.stopPropagation()}>
-            <h2 className="mode-title serif">면접 난이도를 선택하세요</h2>
+            <h2 className="mode-title serif">어떻게 피드백 해드릴까요?</h2>
             <div className="mode-cards">
               <button
                 className="mode-card encourage"

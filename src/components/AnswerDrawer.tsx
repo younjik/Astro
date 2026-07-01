@@ -173,10 +173,18 @@ export function AnswerDrawer({
       setTranscript(text);
 
       setPhase("evaluating");
+      // 첫 페이지에서 선택한 난이도(localStorage "gradeMode")를 채점 요청에 실어 보낸다.
+      // 저장값이 없거나 예상 밖이면 기본값 "easy"로 폴백한다.
+      const gradeMode =
+        localStorage.getItem("gradeMode") === "hard" ? "hard" : "easy";
       const evalRes = await fetch("/api/evaluate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: question.question, transcript: text }),
+        body: JSON.stringify({
+          question: question.question,
+          transcript: text,
+          mode: gradeMode,
+        }),
       });
       const evalData = await evalRes.json();
       if (!evalRes.ok) throw new Error(evalData.error ?? "평가 실패");

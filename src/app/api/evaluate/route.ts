@@ -9,7 +9,7 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function POST(req: NextRequest) {
   try {
-    const { question, transcript } = await req.json();
+    const { question, transcript, mode } = await req.json();
 
     if (!question || !transcript) {
       return NextResponse.json(
@@ -17,6 +17,15 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    // 난이도(easy=격려 / hard=채찍). 미지정·불명 값은 기본값 "easy"로 정규화한다.
+    const gradeMode = mode === "hard" ? "hard" : "easy";
+    const difficultyInstruction =
+      gradeMode === "hard"
+        ? "채점 기조: 실전 압박 면접관처럼 냉정하고 엄격하게 평가하세요. 구체적 근거·수치·성과가 없거나 STAR 구조가 " +
+          "드러나지 않으면 감점하고, 두루뭉술하거나 일반론에 그치면 낮은 점수를 주세요. 관대함 없이 실전 기준으로 채점합니다.\n\n"
+        : "채점 기조: 격려하는 관점에서 평가하세요. 강점을 먼저 충분히 짚어주고, 부족한 부분은 비난 대신 " +
+          "구체적인 개선 제안으로 부드럽게 안내하세요. 전반적으로 후하게 채점합니다.\n\n";
 
     const msg = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
@@ -27,6 +36,7 @@ export async function POST(req: NextRequest) {
           content:
             "당신은 경험 많은 채용 면접관입니다. 아래 면접 질문에 대한 지원자의 음성 답변(STT 변환 텍스트)을 평가하세요. " +
             "변환 과정의 사소한 오탈자나 띄어쓰기는 감안하고, 내용과 구조, 구체성, 직무 적합성을 중심으로 채점하세요.\n\n" +
+            difficultyInstruction +
             `[면접 질문]\n${question}\n\n` +
             `[지원자 답변]\n${transcript}\n\n` +
             "반드시 아래 JSON 형식으로만 응답하세요. 코드펜스나 설명 없이 JSON 객체 하나만 출력합니다.\n\n" +
