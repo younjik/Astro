@@ -32,6 +32,21 @@ export default function CardsPage() {
   const dragRef = useRef({ startX: 0, startRotation: 0, moved: false });
   const suppressClickRef = useRef(false);
 
+  // 이 페이지에 머무는 동안 문서 스크롤 자체를 잠금 — 아치 영역 밖에서
+  // 휠/드래그를 해도 배경(페이지)이 밀려 내려가지 않도록.
+  // 실제 스크롤은 html(문서 스크롤링 엘리먼트)에서 일어나므로 body와 함께 잠가야 함
+  useEffect(() => {
+    const html = document.documentElement;
+    const prevHtmlOverflow = html.style.overflow;
+    const prevBodyOverflow = document.body.style.overflow;
+    html.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    return () => {
+      html.style.overflow = prevHtmlOverflow;
+      document.body.style.overflow = prevBodyOverflow;
+    };
+  }, []);
+
   // 휠 스크롤 → 부채 전체 회전 (기본 페이지 스크롤은 막음)
   useEffect(() => {
     const el = spreadRef.current;
