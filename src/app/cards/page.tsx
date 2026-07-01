@@ -16,6 +16,8 @@ export default function CardsPage() {
   const [showSummary, setShowSummary] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [isShuffling, setIsShuffling] = useState(false);
+  const [isSpreading, setIsSpreading] = useState(false);
   const [resetKey, setResetKey] = useState(0);
   const summaryRef = useRef<HTMLDivElement>(null);
   const spreadRef = useRef<HTMLElement>(null);
@@ -64,14 +66,23 @@ export default function CardsPage() {
   function handleReset() {
     if (isResetting) return;
     setActiveId(null);
+    // 즉시 뒷면으로 전환 (수집 중 카드가 앞면 보이지 않도록)
+    setFlipped(new Set());
+    setAnswers({});
+    sessionStorage.removeItem("interview:answers");
     setIsResetting(true);
+    // Phase 1 (0-650ms): 카드들이 중앙 하단 덱으로 모임
     setTimeout(() => {
-      setFlipped(new Set());
-      setAnswers({});
-      sessionStorage.removeItem("interview:answers");
-      setIsResetting(false);
-      setResetKey((k) => k + 1);
-    }, 550);
+      // Phase 2 (650-1050ms): 덱 셔플
+      setIsShuffling(true);
+      setTimeout(() => {
+        // Phase 3: 덱에서 바로 아치로 펼쳐짐
+        setIsResetting(false);
+        setIsShuffling(false);
+        setIsSpreading(true);
+        setTimeout(() => setIsSpreading(false), 700);
+      }, 400);
+    }, 650);
   }
 
   function persistAnswers(map: Record<number, AnsweredCard>) {
@@ -228,17 +239,18 @@ export default function CardsPage() {
       </div>
 
       <section className="spread" ref={spreadRef}>
-        <div className={`arch-content${isResetting ? " is-resetting" : ""}`} key={resetKey}>
+        <div className={`arch-content${isResetting ? " is-resetting" : ""}${isShuffling ? " is-shuffling" : ""}${isSpreading ? " is-spreading" : ""}`} key={resetKey}>
         {ARCANA.map((arc, i) => {
           const q = data.questions.find((x) => x.id === i) ?? data.questions[i];
           const ans = answers[i];
           const angle = -65 + i * (130 / 9);
           const zIdx = Math.round(10 - Math.abs(i - 4.5));
+          const deckRot = ((i - 4.5) * 2).toFixed(1);
           return (
             <div
               key={i}
               className={`card-slot${flipped.has(i) ? " is-flipped" : ""}`}
-              style={{ "--angle": `${angle.toFixed(1)}deg`, zIndex: zIdx } as React.CSSProperties}
+              style={{ "--angle": `${angle.toFixed(1)}deg`, "--deck-rot": `${deckRot}deg`, "--slot-i": i, zIndex: zIdx } as React.CSSProperties}
             >
               <TarotCard
                 arc={arc}
@@ -578,12 +590,41 @@ export default function CardsPage() {
           width: max(100%, calc(var(--R) * 1.9 + var(--card-w) + 60px));
         }
 
-        /* ── 리셋 애니메이션 ── */
+        /* ── 리셋 애니메이션: Phase 1 — 카드가 중앙 하단 덱으로 모임 ── */
         .arch-content.is-resetting .card-slot {
-          transition: opacity 0.45s ease-in, transform 0.45s ease-in !important;
-          opacity: 0 !important;
-          transform: rotate(var(--angle)) scale(0.15) !important;
+          left: calc(50% - var(--card-w) / 2) !important;
+          bottom: 24px !important;
+          transform: rotate(var(--deck-rot)) !important;
+          z-index: calc(var(--slot-i, 0) + 1) !important;
+          transition:
+            left 0.55s cubic-bezier(0.4, 0, 0.6, 1),
+            bottom 0.55s cubic-bezier(0.4, 0, 0.6, 1),
+            transform 0.55s cubic-bezier(0.4, 0, 0.6, 1) !important;
           pointer-events: none;
+        }
+
+        /* Phase 3 — 덱에서 아치로 펼쳐짐 */
+        .arch-content.is-spreading .card-slot {
+          transition:
+            left 0.65s cubic-bezier(0.2, 0.8, 0.2, 1),
+            bottom 0.65s cubic-bezier(0.2, 0.8, 0.2, 1),
+            transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+          pointer-events: none;
+        }
+
+        /* Phase 2 — 덱 셔플 흔들기 */
+        .arch-content.is-resetting.is-shuffling .card-slot {
+          transition: none !important;
+          animation: deck-shuffle 0.38s ease-in-out !important;
+        }
+
+        @keyframes deck-shuffle {
+          0%   { transform: rotate(var(--deck-rot)) translateX(0); }
+          18%  { transform: rotate(var(--deck-rot)) translateX(-14px) rotate(-3deg); }
+          36%  { transform: rotate(var(--deck-rot)) translateX(12px) rotate(3deg); }
+          54%  { transform: rotate(var(--deck-rot)) translateX(-8px) rotate(-2deg); }
+          72%  { transform: rotate(var(--deck-rot)) translateX(6px) rotate(1deg); }
+          100% { transform: rotate(var(--deck-rot)) translateX(0); }
         }
 
         .card-slot {
