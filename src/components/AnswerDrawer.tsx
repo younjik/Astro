@@ -193,36 +193,29 @@ export function AnswerDrawer({
     }
   }
 
-  // 테스트용: 마이크 녹음 없이 더미 답변으로 바로 평가 → 결과 화면 확인
-  async function skipToResultForTesting() {
+  // 테스트용: 마이크 녹음도, Claude 분석 API 호출도 없이 더미 결과 화면만 바로 확인
+  function skipToResultForTesting() {
     clearTimer();
     const dummyTranscript = "(테스트) 마이크 녹음 없이 결과 화면을 확인하기 위한 더미 답변입니다.";
+    const dummyEvaluation: Evaluation = {
+      score: 7,
+      strengths: ["(데모) 답변 구조가 명확합니다.", "(데모) 핵심 키워드를 잘 짚었습니다."],
+      improvements: ["(데모) 구체적인 수치나 사례를 더 추가하면 좋겠습니다.", "(데모) 결론을 조금 더 간결하게 정리해보세요."],
+      summary: "(데모) 이 결과는 Claude 분석 없이 생성된 테스트용 더미 데이터입니다.",
+      suggestedAnswer: "(데모) 실제 API 연동 시 이 자리에 답변 기반 추천 예시가 표시됩니다.",
+    };
     setTranscript(dummyTranscript);
-    setPhase("evaluating");
-    try {
-      const evalRes = await fetch("/api/evaluate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: question.question, transcript: dummyTranscript }),
-      });
-      const evalData = await evalRes.json();
-      if (!evalRes.ok) throw new Error(evalData.error ?? "평가 실패");
-      const ev = evalData as Evaluation;
-      setEvaluation(ev);
-      setPhase("done");
+    setEvaluation(dummyEvaluation);
+    setPhase("done");
 
-      onSaved({
-        questionId: question.id,
-        arcanaKo: question.arcanaKo,
-        question: question.question,
-        transcript: dummyTranscript,
-        evaluation: ev,
-        answeredAt: Date.now(),
-      });
-    } catch (e: any) {
-      setError(e.message);
-      setPhase("intro");
-    }
+    onSaved({
+      questionId: question.id,
+      arcanaKo: question.arcanaKo,
+      question: question.question,
+      transcript: dummyTranscript,
+      evaluation: dummyEvaluation,
+      answeredAt: Date.now(),
+    });
   }
 
   return (
