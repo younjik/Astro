@@ -98,8 +98,8 @@ export function TarotCard({
         /* 앞면 */
         .front {
           transform: rotateY(180deg);
-          /* 원본 이미지에 여백(비네트)이 있어 확대해 카드 테두리까지 꽉 채움 */
-          background: #15122c url('/앞면 수정.png') center center / 110% no-repeat;
+          /* 일반 질문 카드 — 원본 이미지 여백을 확대해 카드 테두리까지 꽉 채움 */
+          background: #15122c url('/보라색 카드 앞면.png') center center / 110% no-repeat;
           display: flex;
           flex-direction: column;
           align-items: center;

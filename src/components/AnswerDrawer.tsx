@@ -54,7 +54,6 @@ export function AnswerDrawer({
   const { error: recError, start, stop } = useRecorder();
   const [phase, setPhase] = useState<Phase>(existing ? "done" : "prep");
   const [flipped, setFlipped] = useState(false);
-  const [sparkle, setSparkle] = useState(false);
   const [questionHidden, setQuestionHidden] = useState(false);
   const [timer, setTimer] = useState(0);
   const [transcript, setTranscript] = useState(existing?.transcript ?? "");
@@ -70,8 +69,6 @@ export function AnswerDrawer({
 
   useEffect(() => {
     const t1 = setTimeout(() => setFlipped(true), 60);
-    const t2 = setTimeout(() => setSparkle(true), 800);
-    const t3 = setTimeout(() => setSparkle(false), 1500);
     if (!existing) {
       setTimer(PREP_SECONDS);
       intervalRef.current = setInterval(() => {
@@ -81,7 +78,7 @@ export function AnswerDrawer({
         });
       }, 1000);
     }
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimer(); };
+    return () => { clearTimeout(t1); clearTimer(); };
   }, []);
 
   useEffect(() => {
@@ -204,15 +201,6 @@ export function AnswerDrawer({
         {/* ── 1열: 뽑힌 카드 ── */}
         <div className="card-col">
           <div className={`card-wrap${flipped ? " flipped" : ""}`}>
-            {/* ── 반짝이 효과: 플립 완료 직후 터짐 ── */}
-            {flipped && (
-              <div className="sparkle-ring" aria-hidden>
-                {(["✦","✧","✶","✦","✧","✦","✶","✧","✦","✧"] as const).map((ch, i) => (
-                  <span key={i} className={`sp sp${i}`}>{ch}</span>
-                ))}
-              </div>
-            )}
-
             <div className="card-inner">
               {/* ── 뒷면 ── */}
               <div className="back-face" aria-hidden>
@@ -225,7 +213,6 @@ export function AnswerDrawer({
               {/* ── 앞면: 카드 주제/키워드만 표시 (질문 본문은 우측 패널) ── */}
               <div className={`front-face${question.difficulty === "advanced" ? " advanced" : ""}`}>
                 <div className="card-header">
-                  <div className="arcana-name serif">{question.arcanaKo}</div>
                   <div className="divider-line" />
                   {question.difficulty === "advanced" && (
                     <div className="advanced-badge">✦ 심화 질문</div>
@@ -238,13 +225,6 @@ export function AnswerDrawer({
                     <span className="keyword serif">{question.category}</span>
                     <span className="keyword-deco"> —</span>
                   </div>
-                  {question.keywords && question.keywords.length > 0 && (
-                    <div className="card-kw-list">
-                      {question.keywords.slice(0, 6).map((k, i) => (
-                        <span className="card-kw" key={i}>#{k}</span>
-                      ))}
-                    </div>
-                  )}
                 </div>
                 <div className="divider-line" />
               </div>
@@ -483,8 +463,9 @@ export function AnswerDrawer({
 
         /* ── 1열: 뽑힌 카드 ── */
         .card-col {
-          flex: 0 0 30%;
-          max-width: 300px;
+          /* 카드 실제 크기(.card-wrap)에 맞춰 칼럼 너비도 자동으로 맞춤 —
+             고정 30%/300px로 두면 카드가 더 클 때 옆 칼럼과 겹침 */
+          flex: 0 0 auto;
           display: flex;
           align-items: flex-start;
           justify-content: center;
@@ -520,21 +501,11 @@ export function AnswerDrawer({
         .content-col.advanced .stage-desc { color: rgba(245,230,192,0.7); }
         .content-col.advanced .stage-desc b { color: var(--gold-bright); }
 
-        /* ── 반짝이 ── */
-        .sparkle-ring {
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          z-index: 20;
-          overflow: visible;
-        }
-
         /* ── 3D flip wrapper ── */
         .card-wrap {
           perspective: 1400px;
-          /* card-col 너비(최대 300px, 모바일 240px)를 넘지 않도록 100%로 제한 —
-             예전엔 400px까지 늘어나 옆 content-col과 겹쳤음 */
-          width: min(100%, calc((100dvh - 64px) / 1.5));
+          /* 바닥에 깔린 카드와 동일한 2:3 비율 기준 너비 (height = width * 1.5) */
+          width: min(400px, 94vw, calc((100dvh - 64px) / 1.5));
           flex-shrink: 0;
         }
 
@@ -594,9 +565,9 @@ export function AnswerDrawer({
           transform: rotateY(180deg);
           backface-visibility: hidden;
           border-radius: 18px;
-          /* 원본 이미지에 여백(비네트)이 있어 확대해 카드 테두리까지 꽉 채움.
-             상하 여백이 비대칭(상 5% / 하 8.3%)이라 세로 위치도 32%로 보정 */
-          background: #15122c url("/앞면 수정.png") center 32% / 110%
+          /* 일반 질문 카드 — 원본 이미지 여백(상 5%/하 8.3%)에 맞춰
+             확대 110% + 세로 위치 32%로 보정 (심화 카드와 동일 비율/위치) */
+          background: #15122c url("/보라색 카드 앞면.png") center 32% / 110%
             no-repeat;
           border: 1px solid var(--line);
           box-shadow: 0 28px 70px rgba(0, 0, 0, 0.65);
@@ -625,21 +596,7 @@ export function AnswerDrawer({
           color: var(--gold-bright);
           text-shadow: 0 0 30px rgba(201,162,75,0.5);
         }
-        .card-kw-list {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 6px;
-          justify-content: center;
-        }
-        .card-kw {
-          font-size: 10.5px;
-          color: var(--mist);
-          border: 1px solid var(--line-soft);
-          padding: 3px 9px;
-          border-radius: 99px;
-        }
         .front-face.advanced .card-glyph { color: #ffe8a0; }
-        .front-face.advanced .card-kw { color: rgba(245,230,192,0.75); border-color: rgba(201,162,75,0.3); }
 
         /* ── 심화 질문 금색 카드 ── */
         .front-face.advanced {
@@ -670,10 +627,6 @@ export function AnswerDrawer({
           border-radius: 99px;
           font-weight: 700;
           box-shadow: 0 2px 10px rgba(201, 162, 75, 0.4);
-        }
-        .front-face.advanced .arcana-name {
-          color: var(--gold-bright);
-          opacity: 1;
         }
         .front-face.advanced .keyword {
           color: #ffe8a0;
@@ -718,13 +671,6 @@ export function AnswerDrawer({
           flex-direction: column;
           align-items: center;
           gap: 10px;
-        }
-        .arcana-name {
-          font-size: 13px;
-          letter-spacing: 0.28em;
-          color: var(--gold);
-          text-transform: uppercase;
-          opacity: 0.85;
         }
         .divider-line {
           width: 100%;
