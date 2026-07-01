@@ -452,9 +452,11 @@ export function AnswerDrawer({
           box-shadow: 0 28px 70px rgba(0,0,0,0.65);
           padding: 24px 24px 32px;
           overflow-y: auto;
+          scrollbar-width: none;
           display: flex;
           flex-direction: column;
         }
+        .front-face::-webkit-scrollbar { display: none; }
 
         /* 헤더 아래 나머지 공간을 차지하며 내용을 세로 가운데 정렬 */
         .card-body {
