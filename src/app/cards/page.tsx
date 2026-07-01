@@ -775,9 +775,9 @@ export default function CardsPage() {
 
         /* ── 원호형 회전 카드 배열 (휠/드래그로 부채 전체가 회전) ── */
         .spread {
-          --card-w: min(clamp(135px, 31dvh, 270px), 42vw);
+          --card-w: min(clamp(155px, 35dvh, 310px), 47vw);
           --R: clamp(270px, 50dvh, 520px);
-          --d: calc(var(--R) * 0.92);
+          --d: calc(var(--R) * 1.5);
           flex: 0 0 auto;
           position: relative;
           width: 100vw;
