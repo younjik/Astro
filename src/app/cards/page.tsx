@@ -7,6 +7,16 @@ import { TarotCard } from "@/components/TarotCard";
 import { AnswerDrawer } from "@/components/AnswerDrawer";
 import type { GenerateResult, AnsweredCard } from "@/lib/types";
 
+// 부채꼴 아치의 반지름 — CSS의 --R 값과 반드시 일치해야 함
+const ARC_RADIUS = 420;
+// 휠/드래그로 회전시킬 수 있는 최대 offset (deg)
+const ROTATION_LIMIT = 70;
+const WHEEL_SENSITIVITY = 0.06;
+
+function clamp(v: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, v));
+}
+
 export default function CardsPage() {
   const router = useRouter();
   const [data, setData] = useState<GenerateResult | null>(null);
@@ -15,15 +25,59 @@ export default function CardsPage() {
   const [activeId, setActiveId] = useState<number | null>(null);
   const [showSummary, setShowSummary] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [rotation, setRotation] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const summaryRef = useRef<HTMLDivElement>(null);
   const spreadRef = useRef<HTMLElement>(null);
+  const dragRef = useRef({ startX: 0, startRotation: 0, moved: false });
+  const suppressClickRef = useRef(false);
 
-  // 스프레드 초기 스크롤: 아치 중앙이 뷰포트 중심에 오도록
+  // 휠 스크롤 → 부채 전체 회전 (기본 페이지 스크롤은 막음)
   useEffect(() => {
-    if (!data) return;
     const el = spreadRef.current;
-    if (el) el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      setRotation((r) => clamp(r - delta * WHEEL_SENSITIVITY, -ROTATION_LIMIT, ROTATION_LIMIT));
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
   }, [data]);
+
+  // 드래그 → 부채 전체 회전
+  useEffect(() => {
+    if (!isDragging) return;
+    const onPointerMove = (e: PointerEvent) => {
+      const deltaX = e.clientX - dragRef.current.startX;
+      if (Math.abs(deltaX) > 4) dragRef.current.moved = true;
+      const deltaDeg = (deltaX / ARC_RADIUS) * (180 / Math.PI);
+      setRotation(clamp(dragRef.current.startRotation + deltaDeg, -ROTATION_LIMIT, ROTATION_LIMIT));
+    };
+    const onPointerUp = () => {
+      setIsDragging(false);
+      if (dragRef.current.moved) suppressClickRef.current = true;
+    };
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+    };
+  }, [isDragging]);
+
+  function handleSpreadPointerDown(e: React.PointerEvent) {
+    dragRef.current = { startX: e.clientX, startRotation: rotation, moved: false };
+    setIsDragging(true);
+  }
+
+  function handleSpreadClickCapture(e: React.MouseEvent) {
+    if (suppressClickRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      suppressClickRef.current = false;
+    }
+  }
 
   // 세션에서 데이터 로드
   useEffect(() => {
@@ -191,12 +245,17 @@ export default function CardsPage() {
         )}
       </div>
 
-      <section className="spread" ref={spreadRef}>
+      <section
+        className={`spread${isDragging ? " is-dragging" : ""}`}
+        ref={spreadRef}
+        onPointerDown={handleSpreadPointerDown}
+        onClickCapture={handleSpreadClickCapture}
+      >
         <div className="arch-content">
         {ARCANA.map((arc, i) => {
           const q = data.questions.find((x) => x.id === i) ?? data.questions[i];
           const ans = answers[i];
-          const angle = -65 + i * (130 / 9);
+          const angle = -65 + i * (130 / 9) + rotation;
           const zIdx = Math.round(10 - Math.abs(i - 4.5));
           return (
             <div
@@ -491,7 +550,7 @@ export default function CardsPage() {
           }
         }
 
-        /* ── 원호형 스크롤 카드 배열 ── */
+        /* ── 원호형 회전 카드 배열 (휠/드래그로 부채 전체가 회전) ── */
         .spread {
           --card-w: min(240px, 42vw);
           --R: 420px;   /* 원의 반지름 */
@@ -501,18 +560,20 @@ export default function CardsPage() {
           margin-left: calc(50% - 50vw);
           /* 가운데 카드 전체가 보이도록 높이 확보: (R-d) + 카드높이 + 여백 */
           height: calc(var(--R) - var(--d) + var(--card-w) * 1.5 + 30px);
-          overflow-x: auto;
-          overflow-y: hidden;
-          scrollbar-width: none;
+          overflow: hidden;
           margin-bottom: 30px;
+          cursor: grab;
+          touch-action: none;
+          user-select: none;
         }
-        .spread::-webkit-scrollbar { display: none; }
+        .spread.is-dragging {
+          cursor: grabbing;
+        }
 
         .arch-content {
           position: relative;
           height: 100%;
-          /* 좌우 끝 카드(±65°)가 잘리지 않을 최소 너비 */
-          width: max(100%, calc(var(--R) * 1.9 + var(--card-w) + 60px));
+          width: 100%;
         }
 
         .card-slot {
@@ -525,6 +586,10 @@ export default function CardsPage() {
           transform: rotate(var(--angle));
           transform-origin: center bottom;
           transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+          pointer-events: auto;
+        }
+        .spread.is-dragging .card-slot {
+          transition: none;
         }
         .card-slot:hover {
           transform: rotate(var(--angle)) translateY(-20px) scale(1.07) !important;
