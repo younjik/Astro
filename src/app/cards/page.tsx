@@ -996,11 +996,6 @@ export default function CardsPage() {
           flex: 1;
           min-width: 0;
         }
-        .cap-arcana {
-          color: var(--gold);
-          font-size: 15px;
-          flex-shrink: 0;
-        }
         .cap-category {
           font-size: 11px;
           color: #f8d0ef;
