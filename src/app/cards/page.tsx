@@ -347,7 +347,9 @@ export default function CardsPage() {
               const ans = answers[i];
               const angle = -65 + i * (130 / 9) + rotation;
               // 카드가 순서대로(왼쪽→오른쪽) 겹치도록 — 가운데 카드가 위로 튀어나오지 않게 함
-              const zIdx = i + 1;
+              // 답변 완료된 카드는 한 단계 뒤로 깔려 오른쪽(i+1) 카드에는 덮이지만
+              // 왼쪽 카드와의 원래 순서(자신이 위)는 그대로 유지
+              const zIdx = ans ? i : i + 1;
               const deckRot = ((i - 4.5) * 2).toFixed(1);
               const collectDelay = `${i * 50}ms`;
               const dealDelay = `${(9 - i) * 100}ms`;
@@ -850,10 +852,6 @@ export default function CardsPage() {
           transform: rotate(var(--angle)) translateY(-28px) scale(1.07) !important;
           z-index: 100 !important;
         }
-        .card-slot.is-flipped {
-          z-index: 0 !important;
-        }
-
         /* 결과 모달 */
         .summary-backdrop {
           position: fixed;
