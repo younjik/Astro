@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { startBackgroundGenerate } from "@/lib/backgroundGenerate";
-import { FIXED_QUESTION, FIXED_QUESTION_ID } from "@/lib/fixedQuestion";
 import { playBgm } from "@/lib/bgm";
 
 function MultiFileSlot({
@@ -419,11 +418,10 @@ const DEMO_DATA = {
 
 const KEYWORD_OPTIONS = ["직무역량", "경험", "인성", "조직적합성", "문제해결", "지원동기"];
 
-// 첫 질문(자기소개+지원동기)은 고정 질문을 즉시 사용하고, 나머지 9장은
-// "카드를 섞는 중" 로딩(최대 20초) 동안 백그라운드에서 생성을 시작한다.
-const BACKGROUND_IDS = Array.from({ length: 10 }, (_, i) => i).filter(
-  (i) => i !== FIXED_QUESTION_ID,
-);
+// 처음 뽑는 카드는 (어떤 카드든) 고정 질문(자기소개+지원동기)으로 즉시 답변을 시작하고,
+// "카드를 섞는 중" 로딩(최대 20초) 동안 10장 전체의 실제 맞춤 질문을 백그라운드에서 생성한다.
+// 어떤 카드가 먼저 고정 질문으로 쓰일지는 /cards에서 사용자가 처음 뽑는 카드에 따라 정해진다.
+const ALL_IDS = Array.from({ length: 10 }, (_, i) => i);
 const LOADING_DURATION_MS = 20000;
 
 export default function UploadPage() {
@@ -523,8 +521,9 @@ export default function UploadPage() {
     handleGenerate();
   }
 
-  // 첫 질문은 고정 질문으로 즉시 시작하고, 나머지 9장은 "카드를 섞는 중" 화면(최대 20초)
-  // 동안 백그라운드에서 생성을 시작한 뒤, 20초가 지나면 완료 여부와 상관없이 카드 화면으로 이동한다.
+  // 처음 뽑는 카드는 (어떤 카드든) 고정 질문으로 즉시 답변을 시작할 수 있고, 그동안
+  // "카드를 섞는 중" 화면(최대 20초)에서 10장 전체의 실제 맞춤 질문을 백그라운드에서 생성한다.
+  // 20초가 지나면 완료 여부와 상관없이 카드 화면으로 이동한다.
   function handleGenerate() {
     if (files.length === 0 && effectiveKeywords.length === 0) return;
     setLoading(true);
@@ -532,11 +531,11 @@ export default function UploadPage() {
 
     sessionStorage.setItem(
       "interview:generate",
-      JSON.stringify({ keywords: [], questions: [FIXED_QUESTION] }),
+      JSON.stringify({ keywords: [], questions: [] }),
     );
     sessionStorage.removeItem("interview:answers");
 
-    startBackgroundGenerate(files, effectiveKeywords, BACKGROUND_IDS, 5);
+    startBackgroundGenerate(files, effectiveKeywords, ALL_IDS, 5);
 
     setTimeout(() => {
       setLoadProgress(100);
