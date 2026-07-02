@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { startBackgroundGenerate } from "@/lib/backgroundGenerate";
 import { FIXED_QUESTION, FIXED_QUESTION_ID } from "@/lib/fixedQuestion";
+import { playBgm } from "@/lib/bgm";
 
 function MultiFileSlot({
   files,
@@ -436,7 +437,6 @@ export default function UploadPage() {
   const [loadProgress, setLoadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [showModeModal, setShowModeModal] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   // 로딩 중 진행률 표시 — 실제 소요 시간(약 20초)에 딱 맞추지 않고
   // 90%까지는 불규칙한 속도로 채우다가, 그 이후엔 3초당 1%씩 천천히 올라가며
@@ -528,6 +528,7 @@ export default function UploadPage() {
   function handleGenerate() {
     if (files.length === 0 && effectiveKeywords.length === 0) return;
     setLoading(true);
+    playBgm();
 
     sessionStorage.setItem(
       "interview:generate",
@@ -538,6 +539,7 @@ export default function UploadPage() {
     startBackgroundGenerate(files, effectiveKeywords, BACKGROUND_IDS, 5);
 
     setTimeout(() => {
+      setLoadProgress(100);
       router.push("/cards");
     }, LOADING_DURATION_MS);
   }
