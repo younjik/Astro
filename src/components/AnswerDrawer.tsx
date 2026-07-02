@@ -272,6 +272,7 @@ export function AnswerDrawer({
           <div className="content-scroll">
             <div className="q-wrap">
               <h2 className={`q-text serif${questionHidden && phase !== "done" ? " q-hidden" : ""}`}>
+                <span className="q-mark">Q.</span>{" "}
                 {highlightKeywords(question.question, question.keywords ?? [])}
               </h2>
               {phase !== "done" && (
@@ -740,6 +741,10 @@ export function AnswerDrawer({
         .q-text.q-hidden {
           filter: blur(9px);
           user-select: none;
+        }
+        .q-mark {
+          color: var(--gold-bright);
+          font-weight: 700;
         }
         .q-toggle {
           display: flex;
