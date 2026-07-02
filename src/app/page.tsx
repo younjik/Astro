@@ -663,7 +663,7 @@ export default function UploadPage() {
       {/* TODO: 배포 전 제거 */}
       <div className="demo-wrap">
         <button className="demo-btn" onClick={handleDemo}>
-          ⚡ 데모 — PDF 없이 바로 시작
+          ⚡ 둘러보고 시작하기
         </button>
       </div>
 
