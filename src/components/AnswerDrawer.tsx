@@ -272,6 +272,7 @@ export function AnswerDrawer({
           <div className="content-scroll">
             <div className="q-wrap">
               <h2 className={`q-text${questionHidden && phase !== "done" ? " q-hidden" : ""}`}>
+                <span className="q-mark">Q.</span>{" "}
                 {highlightKeywords(question.question, question.keywords ?? [])}
               </h2>
               {phase !== "done" && (
@@ -338,13 +339,6 @@ export function AnswerDrawer({
               </div>
             )}
 
-              {process.env.NODE_ENV !== "production" &&
-                (phase === "intro" || phase === "prep" || phase === "recording") && (
-                  <button className="dev-skip" onClick={skipToResultForTesting}>
-                    🧪 테스트: 마이크 없이 결과 화면 바로가기
-                  </button>
-                )}
-
             {(phase === "transcribing" || phase === "evaluating") && (
               <div className="stage">
                 <div className="spinner" />
@@ -396,17 +390,26 @@ export function AnswerDrawer({
               </div>
             )}
 
-            {hint && (phase === "intro" || phase === "prep" || phase === "recording") && (
+            {(phase === "intro" || phase === "prep" || phase === "recording") && (
               <div className="hint-panel">
-                <button
-                  type="button"
-                  className="hint-toggle"
-                  onClick={() => setHintOpen((v) => !v)}
-                  aria-expanded={hintOpen}
-                >
-                  {hintOpen ? "힌트 숨기기 ▴" : "💡 면접 힌트 보기 ▾"}
-                </button>
-                {hintOpen && (
+                <div className="hint-row">
+                  {hint ? (
+                    <button
+                      type="button"
+                      className="hint-toggle"
+                      onClick={() => setHintOpen((v) => !v)}
+                      aria-expanded={hintOpen}
+                    >
+                      {hintOpen ? "힌트 숨기기 ▴" : "💡 면접 힌트 보기 ▾"}
+                    </button>
+                  ) : (
+                    <span />
+                  )}
+                  <button className="feedback-preview" onClick={skipToResultForTesting}>
+                    예상 피드백 미리보기
+                  </button>
+                </div>
+                {hint && hintOpen && (
                   <div className="hint-body">
                     {hint.keywords.length > 0 && (
                       <div className="hint-block">
@@ -744,6 +747,10 @@ export function AnswerDrawer({
           filter: blur(9px);
           user-select: none;
         }
+        .q-mark {
+          color: var(--parchment);
+          font-weight: 700;
+        }
         .q-toggle {
           display: flex;
           align-items: center;
@@ -903,19 +910,19 @@ export function AnswerDrawer({
           border-color: var(--gold);
         }
 
-        /* 개발 중 테스트용 — 마이크 없이 결과로 바로가기 */
-        .dev-skip {
-          margin-top: 10px;
+        /* 답변 없이 결과 화면을 미리 볼 수 있는 버튼 */
+        .feedback-preview {
+          flex-shrink: 0;
           background: transparent;
           border: 1px dashed rgba(224, 113, 159, 0.5);
           color: var(--ember);
-          padding: 8px 16px;
+          padding: 5px 14px;
           border-radius: 8px;
-          font-size: 12px;
+          font-size: 11.5px;
           cursor: pointer;
           transition: border-color 0.2s;
         }
-        .dev-skip:hover {
+        .feedback-preview:hover {
           border-color: var(--ember);
         }
 
@@ -1057,6 +1064,12 @@ export function AnswerDrawer({
           margin-top: 28px;
           padding-top: 18px;
           border-top: 1px solid var(--line-soft);
+        }
+        .hint-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
         }
         .hint-toggle {
           box-sizing: border-box;
