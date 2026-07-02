@@ -12,6 +12,7 @@ import {
   onBackgroundResult,
 } from "@/lib/backgroundGenerate";
 import { stopBgm } from "@/lib/bgm";
+import { FIXED_QUESTION } from "@/lib/fixedQuestion";
 
 // 부채꼴 아치의 반지름 — CSS의 --R 값과 반드시 일치해야 함
 const ARC_RADIUS = 420;
@@ -28,6 +29,9 @@ export default function CardsPage() {
   const [pageReady, setPageReady] = useState(false);
   const [keywords, setKeywords] = useState<string[]>([]);
   const [questionsById, setQuestionsById] = useState<Record<number, InterviewQuestion>>({});
+  // 이미 어떤 질문(고정 질문 포함)이 배정된 카드 id — 백그라운드 결과가 나중에 도착해도
+  // 이미 배정된 카드는 덮어쓰지 않기 위해 추적한다.
+  const committedIdsRef = useRef<Set<number>>(new Set());
   const [genError, setGenError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [flipped, setFlipped] = useState<Set<number>>(new Set());
@@ -132,12 +136,17 @@ export default function CardsPage() {
   }
 
   // 세션 데이터 로드 + 백그라운드로 생성 중인 나머지 질문 구독
-  // (최초 3장은 이미 생성되어 세션에 있고, 나머지 7장은 /cards 진입 후 백그라운드에서 채워짐)
+  // (처음 뽑는 카드는 고정 질문으로 즉시 배정되고, 나머지는 /cards 진입 후 백그라운드에서 채워짐)
   useEffect(() => {
     const offResult = onBackgroundResult(({ questions }) => {
+      // 이미 배정(고정 질문 포함)된 카드는 배경 결과가 늦게 도착해도 덮어쓰지 않는다.
+      const newOnes = questions.filter((q) => !committedIdsRef.current.has(q.id));
+      if (newOnes.length === 0) return;
+      newOnes.forEach((q) => committedIdsRef.current.add(q.id));
+
       setQuestionsById((prev) => {
         const next = { ...prev };
-        questions.forEach((q) => {
+        newOnes.forEach((q) => {
           next[q.id] = q;
         });
         return next;
@@ -148,7 +157,7 @@ export default function CardsPage() {
         const cached: GenerateResult | null = raw ? JSON.parse(raw) : null;
         const byId: Record<number, InterviewQuestion> = {};
         (cached?.questions ?? []).forEach((q) => { byId[q.id] = q; });
-        questions.forEach((q) => { byId[q.id] = q; });
+        newOnes.forEach((q) => { byId[q.id] = q; });
         const merged = Object.values(byId).sort((a, b) => a.id - b.id);
         sessionStorage.setItem(
           "interview:generate",
@@ -169,15 +178,14 @@ export default function CardsPage() {
       };
     }
 
+    const initial: Record<number, InterviewQuestion> = {};
     if (cachedData) {
       setKeywords(cachedData.keywords ?? []);
-      const initial: Record<number, InterviewQuestion> = {};
       cachedData.questions.forEach((q) => {
         initial[q.id] = q;
+        committedIdsRef.current.add(q.id);
       });
-      setQuestionsById(initial);
     }
-    setPageReady(true);
 
     const savedAns = sessionStorage.getItem("interview:answers");
     if (savedAns) {
@@ -187,10 +195,30 @@ export default function CardsPage() {
       arr.forEach((a) => {
         map[a.questionId] = a;
         flips.add(a.questionId);
+        // 답변 당시 실제로 보여줬던 질문이 세션 캐시에 없을 수 있음(고정 질문으로 답한 경우) —
+        // 그럴 땐 답변에 저장된 텍스트로 최소한의 질문 정보를 복원한다.
+        if (!initial[a.questionId]) {
+          const arc = ARCANA[a.questionId];
+          const isFixed = a.question === FIXED_QUESTION.question;
+          initial[a.questionId] = isFixed
+            ? { ...FIXED_QUESTION, id: a.questionId, arcana: arc?.name ?? "", arcanaKo: a.arcanaKo }
+            : {
+                id: a.questionId,
+                arcana: arc?.name ?? "",
+                arcanaKo: a.arcanaKo,
+                category: "면접",
+                difficulty: "normal",
+                question: a.question,
+              };
+          committedIdsRef.current.add(a.questionId);
+        }
       });
       setAnswers(map);
       setFlipped(flips);
     }
+
+    setQuestionsById(initial);
+    setPageReady(true);
 
     return () => {
       offResult();
@@ -246,8 +274,18 @@ export default function CardsPage() {
 
   function handleCardClick(id: number) {
     if (!questionsById[id]) {
-      setNotice("아직 질문을 준비하고 있어요. 잠시만 기다려 주세요…");
-      return;
+      const fixedAlreadyUsed = Object.values(questionsById).some(
+        (q) => q.question === FIXED_QUESTION.question,
+      );
+      if (fixedAlreadyUsed) {
+        setNotice("아직 질문을 준비하고 있어요. 잠시만 기다려 주세요…");
+        return;
+      }
+      // 처음 뽑는 카드는 어떤 카드든 고정 질문(자기소개+지원동기)으로 바로 시작한다.
+      const arc = ARCANA[id];
+      const q: InterviewQuestion = { ...FIXED_QUESTION, id, arcana: arc.name, arcanaKo: arc.nameKo };
+      committedIdsRef.current.add(id);
+      setQuestionsById((prev) => ({ ...prev, [id]: q }));
     }
     setFlipped((prev) => new Set(prev).add(id));
     setActiveId(id);
