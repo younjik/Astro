@@ -11,6 +11,7 @@ import {
   onBackgroundError,
   onBackgroundResult,
 } from "@/lib/backgroundGenerate";
+import { stopBgm } from "@/lib/bgm";
 
 // 부채꼴 아치의 반지름 — CSS의 --R 값과 반드시 일치해야 함
 const ARC_RADIUS = 420;
@@ -250,6 +251,7 @@ export default function CardsPage() {
     }
     setFlipped((prev) => new Set(prev).add(id));
     setActiveId(id);
+    stopBgm();
   }
 
   // "아직 준비 중" 안내 메시지 잠시 후 자동으로 사라지게
