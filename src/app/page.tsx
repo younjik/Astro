@@ -425,8 +425,29 @@ export default function UploadPage() {
   const [customInput, setCustomInput] = useState("");
   const [customKeywords, setCustomKeywords] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadProgress, setLoadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [showModeModal, setShowModeModal] = useState(false);
+
+  // 로딩 중 진행률 표시 — 실제 소요 시간(약 20초)에 딱 맞추지 않고
+  // 90%까지는 불규칙한 속도로 채우다가, 그 이후엔 3초당 1%씩 천천히 올라가며
+  // 실제 응답을 기다림(응답이 늦어져도 게이지가 멈춘 것처럼 보이지 않게 함).
+  // 실제로 완료되면 handleGenerate에서 100%로 스냅 후 다음 페이지로 이동.
+  useEffect(() => {
+    if (!loading) {
+      setLoadProgress(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setLoadProgress((p) => {
+        if (p >= 99) return p;
+        const step = p < 90 ? Math.random() * 1.9 + 0.4 : 0.1;
+        const cap = p < 90 ? 90 : 99;
+        return Math.min(cap, p + step);
+      });
+    }, 300);
+    return () => clearInterval(interval);
+  }, [loading]);
 
   const effectiveKeywords = [...selectedKeywords, ...customKeywords];
 
@@ -509,6 +530,9 @@ export default function UploadPage() {
       const result = data as GenerateResult;
       sessionStorage.setItem("interview:generate", JSON.stringify(result));
       sessionStorage.removeItem("interview:answers");
+      // 실제 응답이 도착하면 게이지를 100%로 채운 뒤 다음 페이지로 이동
+      setLoadProgress(100);
+      await new Promise((resolve) => setTimeout(resolve, 350));
       router.push("/cards");
     } catch (e: any) {
       setError(e.message);
@@ -529,6 +553,15 @@ export default function UploadPage() {
           </div>
           <div className="load-title serif">운명을 점치는 중...</div>
           <div className="load-sub">질문을 뽑아내고 있습니다</div>
+          <div className="load-progress">
+            <div className="load-progress-track">
+              <div
+                className="load-progress-fill"
+                style={{ width: `${loadProgress}%` }}
+              />
+            </div>
+            <div className="load-progress-pct">{Math.floor(loadProgress)}%</div>
+          </div>
         </div>
       )}
 
@@ -1023,6 +1056,33 @@ export default function UploadPage() {
           letter-spacing: 0.06em;
           color: var(--mist);
           opacity: 0.8;
+        }
+        .load-progress {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          width: min(260px, 70vw);
+          margin-top: -14px;
+        }
+        .load-progress-track {
+          flex: 1;
+          height: 6px;
+          border-radius: 99px;
+          background: rgba(255, 255, 255, 0.1);
+          overflow: hidden;
+        }
+        .load-progress-fill {
+          height: 100%;
+          border-radius: 99px;
+          background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+          transition: width 0.3s ease;
+        }
+        .load-progress-pct {
+          min-width: 34px;
+          font-size: 12.5px;
+          color: var(--gold-bright);
+          text-align: right;
+          font-variant-numeric: tabular-nums;
         }
 
         /* ── 난이도 선택 모달 ── */
