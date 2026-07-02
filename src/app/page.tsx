@@ -658,7 +658,7 @@ export default function UploadPage() {
         )}
       </button>
 
-      <div className="hint">PDF · DOCX 자소서 / PDF · 이미지 채용공고 지원</div>
+      <div className="hint">PDF · DOCX 자소서 / PDF · 이미지 채용공고</div>
 
       {/* TODO: 배포 전 제거 */}
       <div className="demo-wrap">
